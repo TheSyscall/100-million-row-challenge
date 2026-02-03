@@ -64,6 +64,6 @@ jobs:
             php8.5 tempest data:parse --store &&
             git checkout main
             git add leaderboard.csv
-            git commit -am "Update leaderboard"
+            git commit -m "Update leaderboard"
             git push origin main
           "
