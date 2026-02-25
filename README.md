@@ -1,5 +1,5 @@
 > [!IMPORTANT]
-> The 100-million-row challenge is now **live**. You have until March 15, 11:59PM to submit your entry!
+> The 100-million-row challenge is now **live**. You have until March 15, 11:59PM CET to submit your entry!
     
 Welcome to the 100-million-row challenge in PHP! Your goal is to parse a data set of page visits into a JSON file. This repository contains all you need to get started locally. Submitting an entry is as easy as sending a pull request to this repository. This competition will run for two weeks: from Feb 24 to March 15, 2026. When it's done, the top three fastest solutions will win a prize! 
 
@@ -79,7 +79,7 @@ Send a pull request to this repository with your solution. The title of your pul
 
 Prizes are sponsored by [PhpStorm](https://www.jetbrains.com/phpstorm/) and [Tideways](https://tideways.com/). The winners will be determined based on the fastest entries submitted, if two equally fast entries are registered, time of submission will be taken into account.
 
-All entries must be submitted before March 16, 2026 (so you have until March 15, 11:59PM to submit). Any entries submitted after the cutoff date won't be taken into account.
+All entries must be submitted before March 16, 2026 (so you have until March 15, 11:59PM CET to submit). Any entries submitted after the cutoff date won't be taken into account.
 
 First place will get:
 
