@@ -46,7 +46,7 @@ You'll be parsing millions of CSV lines into a JSON file, with the following rul
 
 - Each entry in the generated JSON file should be a key-value pair with the page's URL path as the key and an array with the number of visits per day as the value.
 - Visits should be sorted by date in ascending order.
-- The output should be encoded as a pretty JSON string.
+- The output should be encoded as a pretty JSON string (as generated with `JSON_PRETTY_PRINT`).
 
 As an example, take the following input:
 
