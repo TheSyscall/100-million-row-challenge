@@ -9,7 +9,6 @@ final class Parser
     const int PREFIX_LENGTH = 25;
     const int TIME_LENGTH = -16;
     const int FULL_DATE_LENGTH = 25;
-    const string DELIMITER = ',';
 
     const int CHUNK_SIZE = 1024 * 1024;
 
@@ -53,14 +52,16 @@ final class Parser
             $processedIndex = 0;
             while ($processedIndex < $lastNewlineIndex) {
                 $newlineIndex = strpos($data, "\n", $processedIndex);
-                $line = substr(
+                $path = substr(
                     $data,
                     $processedIndex + self::PREFIX_LENGTH,
-                    $newlineIndex - $processedIndex - self::PREFIX_LENGTH + self::TIME_LENGTH + 1,
+                    $newlineIndex - $processedIndex - self::PREFIX_LENGTH - self::FULL_DATE_LENGTH - 1,
                 );
-                $parts = explode(self::DELIMITER, $line, 2);
-                $path = $parts[0];
-                $date = $parts[1];
+                $date = substr(
+                    $data,
+                    $newlineIndex - self::FULL_DATE_LENGTH + 2,
+                    self::FULL_DATE_LENGTH + self::TIME_LENGTH - 1,
+                );
 
                 $pathIndex = $pathSet[$path];
                 $dateIndex = $dateMap[$date];
@@ -96,7 +97,7 @@ final class Parser
                 $dateSeparator = ',';
 
                 $date = $dateSet[$i];
-                $buffer .= "\n        \"$date\": $count";
+                $buffer .= "\n        \"20$date\": $count";
             }
 
             $buffer .= "\n    }";
@@ -104,16 +105,14 @@ final class Parser
 
         fwrite($file, $buffer . "\n}");
         fclose($file);
-
-        return;
     }
 
     protected function findAllDates(int $fileSize, $file): array
     {
         $numPaths = 0;
         $pathsSet = [];
-        $minDate = "9999-99-99";
-        $maxDate = "0000-00-00";
+        $minDate = "99-99-99";
+        $maxDate = "00-00-00";
 
         $bytesProcessed = 0;
         while ($bytesProcessed < $fileSize) {
@@ -140,8 +139,8 @@ final class Parser
                 $newlineIndex = strpos($data, "\n", $processedIndex);
                 $dateStr = substr(
                     $data,
-                    $newlineIndex - self::FULL_DATE_LENGTH,
-                    self::FULL_DATE_LENGTH + self::TIME_LENGTH + 1,
+                    $newlineIndex - self::FULL_DATE_LENGTH + 2,
+                    self::FULL_DATE_LENGTH + self::TIME_LENGTH - 1,
                 );
 
                 if ($dateStr < $minDate) {
@@ -166,12 +165,6 @@ final class Parser
         }
 
         $minDateTs = strtotime($minDate);
-        $numDates = (strtotime($maxDate) - $minDateTs) / 86400;
-
-        echo "#paths: $numPaths\n";
-        echo "#dates: $numDates\n";
-        echo "min: $minDate\n";
-        echo "max: $maxDate\n";
         $numDates = intdiv((strtotime($maxDate) - $minDateTs), 86400) + 1;
 
         $dateSet = [];
