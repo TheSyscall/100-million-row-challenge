@@ -281,29 +281,37 @@ final class BenchmarkRunCommand
             $commitTimestamp = (int) $commitOutput[0];
 
             // Get the verified label creation date
-            $response = $this->http->get(
-                uri: "https://api.github.com/repos/tempestphp/100-million-row-challenge/issues/{$prNumber}/events",
-                headers: [
-                    'Authorization' => 'Bearer ' . $this->token,
-                    'User-Agent' => 'Tempest-Benchmark',
-                    'Accept' => 'application/vnd.github.v3+json'
-                ],
-            );
+            // Fetch all events with pagination to find the most recent 'verified' label
+            $allEvents = [];
+            $page = 1;
+            $perPage = 100;
 
-            if (! $response->status->isSuccessful()) {
-                $this->prError($prNumber, "Failed to fetch PR events from GitHub");
-                $this->githubComment($prNumber, 'Benchmarking failed: Unable to verify label timeline');
-                return null;
-            }
+            do {
+                $response = $this->http->get(
+                    uri: "https://api.github.com/repos/tempestphp/100-million-row-challenge/issues/{$prNumber}/events?per_page={$perPage}&page={$page}",
+                    headers: [
+                        'Authorization' => 'Bearer ' . $this->token,
+                        'User-Agent' => 'Tempest-Benchmark',
+                        'Accept' => 'application/vnd.github.v3+json'
+                    ],
+                );
 
-            $events = json_decode($response->body, true) ?? [];
+                if (! $response->status->isSuccessful()) {
+                    $this->prError($prNumber, "Failed to fetch PR events from GitHub");
+                    $this->githubComment($prNumber, 'Benchmarking failed: Unable to verify label timeline');
+                    return null;
+                }
+
+                $events = json_decode($response->body, true) ?? [];
+                $allEvents = array_merge($allEvents, $events);
+                $page++;
+            } while ($events !== []);
+
             $verifiedLabelTimestamp = null;
 
-            // Find the most recent 'verified' label addition event
-            foreach (array_reverse($events) as $event) {
-                if ($event['event'] === 'labeled' && $event['label']['name'] === 'verified') {
-                    // Sat Feb 28 2026 07:27:30 GMT+0000
-                    // 2026-02-28T07:28:28Z
+            // Find the most recent 'verified' label addition event (events are in chronological order, so search from the end)
+            foreach (array_reverse($allEvents) as $event) {
+                if ($event['event'] === 'labeled' && ($event['label']['name'] ?? null) === 'verified') {
                     $verifiedLabelTimestamp = strtotime($event['created_at']);
                     break;
                 }
