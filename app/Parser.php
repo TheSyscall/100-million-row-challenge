@@ -6,52 +6,68 @@ use Exception;
 
 final class Parser
 {
-    const int PREFIX_LENGTH = 19;
+    const int PREFIX_LENGTH = 25;
     const int TIME_LENGTH = -16;
+    const int FULL_DATE_LENGTH = 25;
     const string DELIMITER = ',';
+
+    const int CHUNK_SIZE = 1024 * 1024;
 
     public function parse(string $inputPath, string $outputPath): void
     {
+        ini_set('memory_limit', '512M');
         gc_disable();
 
+        $fileSize = filesize($inputPath);
         $file = fopen($inputPath, 'rb');
 
-        $paths = [];
-        $pathIds = [];
-        $idPaths = [];
+        [$pathSet, $numPaths, $dateSet, $dateMap, $numDates] = $this->findAllDates($fileSize, $file);
+
+        fseek($file, 0);
+
+        $map = array_fill(0, $numPaths * $numDates, 0);
+
         $dateIds = [];
         $nextId = 0;
 
-        while (($line = fgets($file)) !== false) {
-            $line = substr($line, self::PREFIX_LENGTH, self::TIME_LENGTH);
-            $parts = explode(self::DELIMITER, $line, 2);
-            $path = $parts[0];
-            $date = $parts[1];
+        $bytesProcessed = 0;
+        while ($bytesProcessed < $fileSize) {
+            $bytesRemaining = $fileSize - $bytesProcessed;
+            $estimatedChunkSize = min(self::CHUNK_SIZE, $bytesRemaining);
 
-            if (!isset($pathIds[$path])) {
-                $pathIds[$path] = $nextId;
-                $idPaths[$nextId] = $path;
-                $nextId++;
+            $data = fread($file, $estimatedChunkSize);
+            if ($data === false) {
+                break;
             }
 
-            $pathId = $pathIds[$path];
+            $chunkLengthBytes = strlen($data);
+            $bytesProcessed += $chunkLengthBytes;
 
-            if (!isset($dateIds[$date])) {
-                $y = substr($date, 3, 1);
-                $m = substr($date, 5, 2);
-                $d = substr($date, 8, 2);
-                $dateId = (int)($y . $m . $d);
-
-                $dateIds[$date] = $dateId;
-            } else {
-                $dateId = $dateIds[$date];
+            $lastNewlineIndex = strrpos($data, "\n");
+            if ($lastNewlineIndex !== false) {
+                $overhangBytes = $chunkLengthBytes - $lastNewlineIndex - 1;
+                fseek($file, -$overhangBytes, SEEK_CUR);
+                $bytesProcessed -= $overhangBytes;
             }
 
-            $dates =& $paths[$pathId];
-            if (isset($dates[$dateId])) {
-                $dates[$dateId]++;
-            } else {
-                $dates[$dateId] = 1;
+            $processedIndex = 0;
+            while ($processedIndex < $lastNewlineIndex) {
+                $newlineIndex = strpos($data, "\n", $processedIndex);
+                $line = substr(
+                    $data,
+                    $processedIndex + self::PREFIX_LENGTH,
+                    $newlineIndex - $processedIndex - self::PREFIX_LENGTH + self::TIME_LENGTH + 1,
+                );
+                $parts = explode(self::DELIMITER, $line, 2);
+                $path = $parts[0];
+                $date = $parts[1];
+
+                $pathIndex = $pathSet[$path];
+                $dateIndex = $dateMap[$date];
+
+                $map[$pathIndex * $numDates + $dateIndex]++;
+
+                $processedIndex = $newlineIndex + 1;
             }
         }
 
@@ -59,23 +75,113 @@ final class Parser
         fclose($file);
         unset($file, $line, $dates, $nextId, $dateIds);
 
-        $jsons = [];
-        foreach ($paths as $pathId => &$dates) {
-            if (count($dates) > 1) {
-                ksort($dates);
+        $file = fopen($outputPath, 'w');
+        stream_set_write_buffer($file, self::CHUNK_SIZE);
+        $buffer = "{";
+
+        $pathSeparator = '';
+        foreach ($pathSet as $path => $pathId) {
+            $buffer .= $pathSeparator;
+            $pathSeparator = ',';
+
+            $buffer .= "\n    \"\/blog\/$path\": {";
+
+            $dateSeparator = '';
+            for ($i = 0; $i < $numDates; $i++) {
+                $count = $map[$pathId * $numDates + $i];
+                if ($count === 0) {
+                    continue;
+                }
+                $buffer .= $dateSeparator;
+                $dateSeparator = ',';
+
+                $date = $dateSet[$i];
+                $buffer .= "\n        \"$date\": $count";
             }
-            $data = [];
-            foreach ($dates as $dateId => &$count) {
-                $date = (string)$dateId;
-                $s = '202' . substr($date, 0, 1) . '-' . substr($date, 1, 2) . '-' . substr($date, 3, 2);
-                $data[$s] = $count;
-            }
-            $jsons[$idPaths[$pathId]] = $data;
+
+            $buffer .= "\n    }";
         }
 
-        $json = json_encode($jsons, JSON_PRETTY_PRINT);
-        unset($jsons, $idPaths, $paths, $dateId, $count);
+        fwrite($file, $buffer . "\n}");
+        fclose($file);
 
-        file_put_contents($outputPath, $json);
+        return;
+    }
+
+    protected function findAllDates(int $fileSize, $file): array
+    {
+        $numPaths = 0;
+        $pathsSet = [];
+        $minDate = "9999-99-99";
+        $maxDate = "0000-00-00";
+
+        $bytesProcessed = 0;
+        while ($bytesProcessed < $fileSize) {
+            $bytesRemaining = $fileSize - $bytesProcessed;
+            $estimatedChunkSize = min(self::CHUNK_SIZE, $bytesRemaining);
+
+            $data = fread($file, $estimatedChunkSize);
+            if ($data === false) {
+                break;
+            }
+
+            $chunkLengthBytes = strlen($data);
+            $bytesProcessed += $chunkLengthBytes;
+
+            $lastNewlineIndex = strrpos($data, "\n");
+            if ($lastNewlineIndex !== false) {
+                $overhangBytes = $chunkLengthBytes - $lastNewlineIndex - 1;
+                fseek($file, -$overhangBytes, SEEK_CUR);
+                $bytesProcessed -= $overhangBytes;
+            }
+
+            $processedIndex = 0;
+            while ($processedIndex < $lastNewlineIndex) {
+                $newlineIndex = strpos($data, "\n", $processedIndex);
+                $dateStr = substr(
+                    $data,
+                    $newlineIndex - self::FULL_DATE_LENGTH,
+                    self::FULL_DATE_LENGTH + self::TIME_LENGTH + 1,
+                );
+
+                if ($dateStr < $minDate) {
+                    $minDate = $dateStr;
+                }
+                if ($dateStr > $maxDate) {
+                    $maxDate = $dateStr;
+                }
+
+                $path = substr(
+                    $data,
+                    $processedIndex + self::PREFIX_LENGTH,
+                    $newlineIndex - $processedIndex - self::PREFIX_LENGTH - self::FULL_DATE_LENGTH - 1,
+                );
+
+                if (! isset($pathsSet[$path])) {
+                    $pathsSet[$path] = $numPaths++;
+                }
+
+                $processedIndex = $newlineIndex + 1;
+            }
+        }
+
+        $minDateTs = strtotime($minDate);
+        $numDates = (strtotime($maxDate) - $minDateTs) / 86400;
+
+        echo "#paths: $numPaths\n";
+        echo "#dates: $numDates\n";
+        echo "min: $minDate\n";
+        echo "max: $maxDate\n";
+        $numDates = intdiv((strtotime($maxDate) - $minDateTs), 86400) + 1;
+
+        $dateSet = [];
+        $dateMap = [];
+        for ($i = 0; $i < $numDates; $i++) {
+            $dateStr = date('y-m-d', $i * 86400 + $minDateTs);
+            $dateSet[$i] = $dateStr;
+            $dateMap[$dateStr] = $i;
+        }
+
+        return [$pathsSet, $numPaths, $dateSet, $dateMap, $numDates];
     }
 }
