@@ -7,7 +7,9 @@ use Exception;
 final class Parser
 {
     const int PREFIX_LENGTH = 25;
+
     const int TIME_LENGTH = -16;
+
     const int FULL_DATE_LENGTH = 25;
 
     const int CHUNK_SIZE = 1024 * 1024;
@@ -20,15 +22,54 @@ final class Parser
         $fileSize = filesize($inputPath);
         $file = fopen($inputPath, 'rb');
 
-        [$pathSet, $numPaths, $dateSet, $dateMap, $numDates] = $this->findAllDates($fileSize, $file);
+        [$pathSet, $numPaths, $dateSet, $dateMap, $numDates] = $this->scanFile($fileSize, $file);
 
         fseek($file, 0);
 
         $map = array_fill(0, $numPaths * $numDates, 0);
 
-        $dateIds = [];
-        $nextId = 0;
+        $this->parseFile($fileSize, $file, $pathSet, $dateMap, $numDates, $map);
 
+        fclose($file);
+
+        $this->output($outputPath, $map, $pathSet, $dateSet, $numDates);
+    }
+
+    protected function output(string $outputPath, array $map, &$pathSet, &$dateSet, $numDates): void
+    {
+        $file = fopen($outputPath, 'w');
+        stream_set_write_buffer($file, self::CHUNK_SIZE);
+        $buffer = "{";
+
+        $pathSeparator = '';
+        foreach ($pathSet as $path => $pathId) {
+            $buffer .= $pathSeparator;
+            $pathSeparator = ',';
+
+            $buffer .= "\n    \"\/blog\/$path\": {";
+
+            $dateSeparator = '';
+            for ($i = 0; $i < $numDates; $i++) {
+                $count = $map[$pathId * $numDates + $i];
+                if ($count === 0) {
+                    continue;
+                }
+                $buffer .= $dateSeparator;
+                $dateSeparator = ',';
+
+                $date = $dateSet[$i];
+                $buffer .= "\n        \"20$date\": $count";
+            }
+
+            $buffer .= "\n    }";
+        }
+
+        fwrite($file, $buffer . "\n}");
+        fclose($file);
+    }
+
+    protected function parseFile(int $fileSize, $file, &$pathSet, &$dateMap, $numDates, &$map): void
+    {
         $bytesProcessed = 0;
         while ($bytesProcessed < $fileSize) {
             $bytesRemaining = $fileSize - $bytesProcessed;
@@ -71,43 +112,9 @@ final class Parser
                 $processedIndex = $newlineIndex + 1;
             }
         }
-
-        gc_enable();
-        fclose($file);
-        unset($file, $line, $dates, $nextId, $dateIds);
-
-        $file = fopen($outputPath, 'w');
-        stream_set_write_buffer($file, self::CHUNK_SIZE);
-        $buffer = "{";
-
-        $pathSeparator = '';
-        foreach ($pathSet as $path => $pathId) {
-            $buffer .= $pathSeparator;
-            $pathSeparator = ',';
-
-            $buffer .= "\n    \"\/blog\/$path\": {";
-
-            $dateSeparator = '';
-            for ($i = 0; $i < $numDates; $i++) {
-                $count = $map[$pathId * $numDates + $i];
-                if ($count === 0) {
-                    continue;
-                }
-                $buffer .= $dateSeparator;
-                $dateSeparator = ',';
-
-                $date = $dateSet[$i];
-                $buffer .= "\n        \"20$date\": $count";
-            }
-
-            $buffer .= "\n    }";
-        }
-
-        fwrite($file, $buffer . "\n}");
-        fclose($file);
     }
 
-    protected function findAllDates(int $fileSize, $file): array
+    protected function scanFile(int $fileSize, $file): array
     {
         $numPaths = 0;
         $pathsSet = [];
