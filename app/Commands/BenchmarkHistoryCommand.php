@@ -24,7 +24,7 @@ final class BenchmarkHistoryCommand
 
     private function processLeaderboard(string $leaderboardPath, string $historyFile, string $finalistsFile): void
     {
-        $gitLog = shell_exec("git log --format='%H|%ci' --since='2026-02-28' --follow -- {$leaderboardPath}");
+        $gitLog = shell_exec("git log --format='%H|%ci' --since='2026-03-01' --follow -- {$leaderboardPath}");
 
         if (empty($gitLog)) {
             $this->error("No git history found for {$leaderboardPath}");
