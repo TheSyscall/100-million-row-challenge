@@ -90,7 +90,7 @@ final class BenchmarkHistoryCommand
             if (!isset($currentBestByBranch[$branch]) || $time < $currentBestByBranch[$branch]) {
                 $currentBestByBranch[$branch] = $time;
 
-                $checkpoint = floor($time * 100) / 100;
+                $checkpoint = floor(round($time * 100, 6)) / 100;
 
                 if (!isset($bestCheckpoint[$branch]) || $checkpoint < $bestCheckpoint[$branch]) {
                     $bestCheckpoint[$branch] = $checkpoint;
