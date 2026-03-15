@@ -75,6 +75,7 @@ entry_date,branch_name,time
 1772231481,salmart-dev,10.98495588474
 1773525925,harrallo,11.331
 1772988242,MircoBabin (single thread),11.486
+1773223944,kafaa-dev,11.637
 1772371304,thegallagher,11.763
 1772445847,alexandre-daubois (single thread),11.8969679092
 1772289905,camilleislasse (single thread),11.95043675064
@@ -89,7 +90,6 @@ entry_date,branch_name,time
 1772025185,ezani92,13.54478919082
 1772246748,DavidBuchanan314-singlethread,13.58062350166
 1772543738,kamil-tekiela,13.83039722674
-1773223944,kafaa-dev,13.847
 1773223888,exussum12,13.896
 1773223851,becastellani,14.254
 1772038058,jmarcher,14.28197869868
