@@ -1,8 +1,42 @@
 > [!IMPORTANT]
 > - The challenge has concluded! We no longer accept new submissions, and existing submissions should not add or remove commits.
-> - Check out [the Leaderboard](https://tempestphp.com/challenges/parsing-100m-lines) (props to [Marcos](https://github.com/marcosmarcolin) for the original idea). 
-> - Comment on your PR with `/bench` to request a re-run.
-> - [Join our Discord](https://tempestphp.com/discord) and then come to [this thread](https://discord.com/channels/1236153076688359495/1476516330017394829) to discuss the challenge with other participants.
+> - Check out [the Leaderboard](https://tempestphp.com/challenges/parsing-100m-lines) (props to [Marcos](https://github.com/marcosmarcolin) for the original idea).
+> - [Join our Discord](https://tempestphp.com/discord)
+
+## Congratulations to the winners!
+
+**🥇 First place**: [xHeaven](https://github.com/tempestphp/100-million-row-challenge/pull/3)
+
+- One PhpStorm Elephpant
+- One Tideways Elephpant
+- One-year JetBrains all-products pack license
+- Three-month JetBrains AI Ultimate license
+- One-year Tideways Team license
+
+**🥈 Second place**: [AcidBurn86](https://github.com/tempestphp/100-million-row-challenge/pull/268)
+
+- One PhpStorm Elephpant
+- One Tideways Elephpant
+- One-year JetBrains all-products pack license
+- Three-month JetBrains AI Ultimate license
+
+**🥉 Third place**: [l0gicnz](https://github.com/tempestphp/100-million-row-challenge/pull/185)
+
+- One PhpStorm Elephpant
+- One Tideways Elephpant
+- One-year JetBrains all-products pack license
+
+**🚂 Fastest single-core submission**: [glauberm](https://github.com/tempestphp/100-million-row-challenge/pull/147)
+
+- One PhpStorm Elephpant
+- One-year JetBrains all-products pack license
+
+**🏅 Participation prize**: [vovakovalchukk](https://github.com/tempestphp/100-million-row-challenge/pull/114)
+
+- One PhpStorm Elephpant
+- One-year JetBrains all-products pack license
+
+---
     
 Welcome to the 100-million-row challenge in PHP! Your goal is to parse a data set of page visits into a JSON file. This repository contains all you need to get started locally. Submitting an entry is as easy as sending a pull request to this repository. This competition will run for two weeks: from Feb 24 to March 15, 2026. When it's done, the top three fastest solutions will win a prize; there's also a dedicated prize for a single-core solution, and a participation prize that everyone can win! 
 
@@ -88,43 +122,6 @@ If you rather want to participate in the single-thread challenge, please mention
 You might be tempted to look for inspiration from other competitors. While we have no means of preventing you from doing that, we will remove submissions that have clearly been copied from other submissions. We validate each submission by hand up front and ask you to come up with an original solution of your own.
 
 ## FAQ
-
-#### What can I win?
-
-Prizes are sponsored by [PhpStorm](https://www.jetbrains.com/phpstorm/) and [Tideways](https://tideways.com/). The winners will be determined based on the fastest entries submitted, if two equally fast entries are registered, time of submission will be taken into account.
-
-All entries must be submitted before March 16, 2026 (so you have until March 15, 11:59PM CET to submit). Any entries submitted after the cutoff date won't be taken into account.
-
-**🥇 First place** will get:
-
-- One PhpStorm Elephpant
-- One Tideways Elephpant
-- One-year JetBrains all-products pack license
-- Three-month JetBrains AI Ultimate license
-- One-year Tideways Team license
-
-**🥈 Second place** will get:
-
-- One PhpStorm Elephpant
-- One Tideways Elephpant
-- One-year JetBrains all-products pack license
-- Three-month JetBrains AI Ultimate license
-
-**🥉 Third place** will get:
-
-- One PhpStorm Elephpant
-- One Tideways Elephpant
-- One-year JetBrains all-products pack license
-
- **🚂 Fastest single-core submission**:
-
-- One PhpStorm Elephpant
-- One-year JetBrains all-products pack license
-
-**🏅 Participation prize** — a random winner picked from all entries who will get:
-
-- One PhpStorm Elephpant
-- One-year JetBrains all-products pack license
 
 #### Where can I see the results?
 
