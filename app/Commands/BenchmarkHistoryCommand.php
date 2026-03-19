@@ -101,7 +101,7 @@ final class BenchmarkHistoryCommand
 
         $allCheckpoints = array_unique(array_values($bestCheckpoint));
         sort($allCheckpoints);
-        $topCheckpoints = array_slice($allCheckpoints, 0, 5);
+        $topCheckpoints = array_slice($allCheckpoints, 0, 3);
 
         $candidates = [];
 
@@ -121,7 +121,7 @@ final class BenchmarkHistoryCommand
         usort($candidates, fn($a, $b) =>
             ($a['checkpoint'] <=> $b['checkpoint']) ?: strcmp($a['reached_at'], $b['reached_at']));
 
-        $finalists = array_slice($candidates, 0, 5);
+        $finalists = array_slice($candidates, 0, 3);
         $topBranches = array_column($finalists, 'branch');
         sort($topBranches);
 
